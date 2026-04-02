@@ -1,0 +1,91 @@
+name: CI/CD Pipeline (Folder Strategy)
+
+on:
+  workflow_dispatch:   # Manual trigger for flexibility
+  push:
+    branches:
+      - main           # single branch, folders define environments
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Set up Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Login to DockerHub
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Static Code Analysis (SonarCloud)
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.projectKey=k8s-e2e-project
+            -Dsonar.organization=rjdevops2025
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      # Build Docker Image
+      - name: Build Docker Image
+        run: |
+          docker build -t nginx-demo:${{ github.sha }} .
+          docker tag nginx-demo:${{ github.sha }} rjdevops2025/nginx-demo:${{ github.sha }}
+
+      # Security Scan (Trivy)
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: rjdevops2025/nginx-demo:${{ github.sha }}
+
+      # Push Image
+      - name: Push Docker Image
+        run: docker push rjdevops2025/nginx-demo:${{ github.sha }}
+
+      # Update Dev Manifests
+      - name: Update Dev Manifests
+        if: github.event.head_commit.message == 'deploy-dev'
+        run: |
+          sed -i "s|image: .*|image: nginx-demo/nginx-demo:${{ github.sha }}|" manifests/dev/deployment.yaml
+          git config --global user.email "ci@github.com"
+          git config --global user.name "GitHub Actions"
+          git add manifests/dev/deployment.yaml
+          git commit -m "Update dev image to ${{ github.sha }}"
+          git push origin main
+
+      # Update QA Manifests
+      - name: Update QA Manifests
+        if: github.event.head_commit.message == 'deploy-qa'
+        run: |
+          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/qa/deployment.yaml
+          git add manifests/qa/deployment.yaml
+          git commit -m "Update qa image to ${{ github.sha }}"
+          git push origin main
+
+      # Update Staging Manifests
+      - name: Update Staging Manifests
+        if: github.event.head_commit.message == 'deploy-staging'
+        run: |
+          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/staging/deployment.yaml
+          git add manifests/staging/deployment.yaml
+          git commit -m "Update staging image to ${{ github.sha }}"
+          git push origin main
+
+      # Update Prod Manifests
+      - name: Update Prod Manifests
+        if: github.event.head_commit.message == 'deploy-prod'
+        run: |
+          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/prod/deployment.yaml
+          git add manifests/prod/deployment.yaml
+          git commit -m "Update prod image to ${{ github.sha }}"
+          git push origin main

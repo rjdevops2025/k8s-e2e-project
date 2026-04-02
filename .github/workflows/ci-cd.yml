@@ -31,7 +31,7 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@master
         with:
           args: >
-            -Dsonar.projectKey=k8s-e2e-project
+            -Dsonar.projectKey=rjdevops2025_k8s-e2e-project
             -Dsonar.organization=rjdevops2025
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}

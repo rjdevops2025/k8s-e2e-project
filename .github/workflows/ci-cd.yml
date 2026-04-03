@@ -39,129 +39,54 @@ jobs:
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t nginx-demo:${{ github.sha }} .
-          docker tag nginx-demo:${{ github.sha }} rjdevops2025/nginx-demo:${{ github.sha }}
+          docker build -t my-app:${{ github.sha }} .
+          docker tag my-app:${{ github.sha }} rjdevops2025/my-app:${{ github.sha }}
 
       # Security Scan (Trivy)
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: rjdevops2025/nginx-demo:${{ github.sha }}
+          image-ref: rjdevops2025/my-app:${{ github.sha }}
 
       # Push Image
       - name: Push Docker Image
-        run: docker push rjdevops2025/nginx-demo:${{ github.sha }}
+        run: docker push rjdevops2025/my-app:${{ github.sha }}
 
-     deploy-dev:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      # Update Dev Manifests
       - name: Update Dev Manifests
+        if: github.event.head_commit.message == 'deploy-dev'
         run: |
-          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/dev/deployment.yaml
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/dev/deployment.yaml
           git config --global user.email "ci@github.com"
           git config --global user.name "GitHub Actions"
           git add manifests/dev/deployment.yaml
-          git commit -m "Deploy to Dev: ${{ github.sha }}"
+          git commit -m "Update dev image to ${{ github.sha }}"
           git push origin main
-		  
-       - name: Slack Notification (Dev)
-        if: github.event.head_commit.message == 'deploy-dev'
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-        payload: |
-            {
-              "text": "🚀 Dev deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-
-  deploy-qa:
-    runs-on: ubuntu-latest
-    needs: deploy-dev
-    environment:
-      name: qa
-      
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      # Update QA Manifests
       - name: Update QA Manifests
-        run: |
-          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/qa/deployment.yaml
-          git add manifests/qa/deployment.yaml
-          git commit -m "Deploy to QA: ${{ github.sha }}"
-          git push origin main
-
-<<<<<<< HEAD
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: deploy-qa
-    environment:
-      name: staging
-  
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-=======
-
-     - name: Slack Notification (QA)
         if: github.event.head_commit.message == 'deploy-qa'
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          payload: |
-            {
-              "text": "🚀 QA deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-	 
-	 # Update Staging Manifests
->>>>>>> f73ad71 (Add Slack notifications for deployments)
+        run: |
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/qa/deployment.yaml
+          git add manifests/qa/deployment.yaml
+          git commit -m "Update qa image to ${{ github.sha }}"
+          git push origin main
+
+      # Update Staging Manifests
       - name: Update Staging Manifests
-        run: |
-          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/staging/deployment.yaml
-          git add manifests/staging/deployment.yaml
-          git commit -m "Deploy to Staging: ${{ github.sha }}"
-          git push origin main
-		  
-	- name: Slack Notification (staging)
         if: github.event.head_commit.message == 'deploy-staging'
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          payload: |
-            {
-              "text": "🚀 Staging deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-		  
-
-  deploy-prod:
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    environment:
-      name: production
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Update Prod Manifests
         run: |
-          sed -i "s|image: .*|image: rjdevops2025/nginx-demo:${{ github.sha }}|" manifests/prod/deployment.yaml
-          git add manifests/prod/deployment.yaml
-          git commit -m "Deploy to Prod: ${{ github.sha }}"
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/staging/deployment.yaml
+          git add manifests/staging/deployment.yaml
+          git commit -m "Update staging image to ${{ github.sha }}"
           git push origin main
 
-	- name: Slack Notification (prod)
+      # Update Prod Manifests
+      - name: Update Prod Manifests
         if: github.event.head_commit.message == 'deploy-prod'
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          payload: |
-            {
-              "text": "🚀 Prod deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/prod/deployment.yaml
+          git add manifests/prod/deployment.yaml
+          git commit -m "Update prod image to ${{ github.sha }}"
+          git push origin main
+

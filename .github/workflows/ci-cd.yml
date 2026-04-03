@@ -63,6 +63,18 @@ jobs:
           git commit -m "Update dev image to ${{ github.sha }}"
           git push origin main
 
+        #Update Slack notification for Dev
+      - name: Slack Notification (Dev)
+        if: github.event.head_commit.message == 'deploy-dev'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+        payload: |
+      {
+        "text": "🚀 Dev deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
+      }
+        env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
       # Update QA Manifests
       - name: Update QA Manifests
         if: github.event.head_commit.message == 'deploy-qa'

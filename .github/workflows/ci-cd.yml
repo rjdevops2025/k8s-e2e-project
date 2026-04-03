@@ -59,7 +59,7 @@ jobs:
           sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/dev/deployment.yaml
           git config --global user.email "ci@github.com"
           git config --global user.name "GitHub Actions"
-          git add manifests/dev/deployment.yaml
+          git add /root/eks-gitops/k8s-e2e-project/dev/deployment.yaml
           git commit -m "Update dev image to ${{ github.sha }}"
           git push origin main
 

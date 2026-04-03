@@ -1,7 +1,7 @@
 name: CI/CD Pipeline (Folder Strategy)
 
 on:
-  workflow_dispatch:   # Manual trigger for flexibility
+  workflow_dispatch   # Manual trigger for flexibility
   push:
     branches:
       - main           # single branch, folders define environments
@@ -67,11 +67,11 @@ jobs:
           git commit -m "Deploy to Dev: ${{ github.sha }}"
           git push origin main
 		  
-	 - name: Slack Notification (Dev)
+       - name: Slack Notification (Dev)
         if: github.event.head_commit.message == 'deploy-dev'
         uses: slackapi/slack-github-action@v1.23.0
         with:
-          payload: |
+        payload: |
             {
               "text": "🚀 Dev deployment successful\nImage: rjdevops2025/nginx-demo:${{ github.sha }}"
             }

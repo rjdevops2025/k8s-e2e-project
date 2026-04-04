@@ -56,10 +56,10 @@ jobs:
       - name: Update Dev Manifests
         if: github.event.head_commit.message == 'deploy-dev'
         run: |
-          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" k8s-e2e-project/dev/deployment.yaml
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" /root/eks-gitops/k8s-e2e-project/dev/deployment.yaml
           git config --global user.email "ci@github.com"
           git config --global user.name "GitHub Actions"
-          git add k8s-e2e-project/dev/deployment.yaml
+          git add /root/eks-gitops/k8s-e2e-project/dev/deployment.yaml
           git commit -m "Update dev image to ${{ github.sha }}"
           git push origin main
 

@@ -6,6 +6,9 @@ on:
     branches:
       - main           # single branch, folders define environments
 
+permissions:
+  contents: write   # <-- allows pushing commits back to repo
+
 jobs:
   build:
     runs-on: ubuntu-latest

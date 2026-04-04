@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: rjdevops2025/my-app:dd3267da90ec9879cd5f3b49fc77e33bf88015d9
         ports:
         - containerPort: 80
 ---

@@ -56,10 +56,10 @@ jobs:
       - name: Update Dev Manifests
         if: github.event.head_commit.message == 'deploy-dev'
         run: |
-          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/dev/deployment.yaml
+          sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" eks-gitops/k8s-e2e-project/dev/deployment.yaml
           git config --global user.email "ci@github.com"
           git config --global user.name "GitHub Actions"
-          git add /root/eks-gitops/k8s-e2e-project/dev/deployment.yaml
+          git add eks-gitops/k8s-e2e-project/dev/deployment.yaml
           git commit -m "Update dev image to ${{ github.sha }}"
           git push origin main
 
@@ -80,7 +80,7 @@ jobs:
         if: github.event.head_commit.message == 'deploy-qa'
         run: |
           sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/qa/deployment.yaml
-          git add manifests/qa/deployment.yaml
+          git add /root/eks-gitops/k8s-e2e-project/qa/deployment.yaml
           git commit -m "Update qa image to ${{ github.sha }}"
           git push origin main
 
@@ -89,7 +89,7 @@ jobs:
         if: github.event.head_commit.message == 'deploy-staging'
         run: |
           sed -i "s|image: .*|image: rjdevops2025/my-app:${{ github.sha }}|" manifests/staging/deployment.yaml
-          git add manifests/staging/deployment.yaml
+          git add k8s-e2-project/staging/deployment.yaml
           git commit -m "Update staging image to ${{ github.sha }}"
           git push origin main
 
